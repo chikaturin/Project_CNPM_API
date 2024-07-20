@@ -9,13 +9,30 @@ const GetDanhSachSanBay = async (req, res) => {
   }
 };
 
+let new_value_danhSachSanBay = 5;
+
 const CreateDanhSachSanBay = async (req, res) => {
   try {
-    const CreateDanhSachSanBay = new DanhSachSanBay(req.body);
-    await CreateDanhSachSanBay.save();
-    res.status(200).json({ CreateDanhSachSanBay });
+    const { TenSanBay, ThanhPho } = req.body;
+
+    if (!TenSanBay || !ThanhPho) {
+      return res.status(400).json({ message: "Thiếu thông tin bắt buộc." });
+    }
+
+    const MaSB = `SB${new_value_danhSachSanBay}`;
+    new_value_danhSachSanBay += 1;
+
+    const newDanhSachSanBay = new DanhSachSanBay({
+      MaSB: MaSB,
+      TenSanBay,
+      ThanhPho,
+    });
+
+    await newDanhSachSanBay.save();
+    res.status(200).json({ newDanhSachSanBay });
   } catch (e) {
-    res.status(500).json("not create danh sach san bay");
+    console.error(e);
+    res.status(500).json({ message: "Không thể tạo danh sách sân bay." });
   }
 };
 

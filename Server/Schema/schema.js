@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
-const AutoIncrement = require("mongoose-sequence")(mongoose);
 
-const KhachHangSchema = new Schema({
+const KhachHangSchema = new mongoose.Schema({
   MaCus: {
     type: String,
     required: true,
@@ -19,30 +18,30 @@ const KhachHangSchema = new Schema({
 });
 
 const DanhSachSanBaySchema = new mongoose.Schema({
-  MaSB: { type: String, required: true, uinque: true },
+  MaSB: { type: String, required: true, unique: true }, // Chỉnh sửa lỗi chính tả "uinque" thành "unique"
   TenSanBay: { type: String, required: true, maxlength: 100 },
   ThanhPho: { type: String, required: true, maxlength: 100 },
 });
 
 const TuyenSchema = new mongoose.Schema({
   MaTuyen: { type: String, required: true, unique: true, maxlength: 5 },
-  DiemKhoiHanh: { type: String, required: true, maxlength: 100 },
-  DiemKetThuc: { type: String, required: true, maxlength: 100 },
+  DiemKhoiHanh: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "DanhSachSanBay",
+    required: true,
+  },
+  DiemKetThuc: {
+    type: String,
+    maxlength: 300,
+    required: true,
+  },
   ThoiGianKhoiHanh: { type: Date, required: true },
   ThoiGianKetThuc: { type: Date, required: true },
-  diemKhoiHanhSanBay: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "DanhSachSanBay",
-  },
-  diemKetThucSanBay: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "DanhSachSanBay",
-  },
 });
 
 const PhuongTienSchema = new mongoose.Schema({
   MaPT: { type: String, required: true, unique: true, maxlength: 5 },
-  MaTuyen: { type: mongoose.Schema.Types.ObjectId, ref: "Tuyen" },
+  MaTuyen: { type: String, ref: "Tuyen" },
   MaLoai: { type: Boolean, required: true },
   TenPhuongTien: { type: String, required: true, maxlength: 100 },
   SoGheToiDa: { type: Number, required: true },
@@ -52,7 +51,7 @@ const TramDungSchema = new mongoose.Schema({
   MaTram: { type: String, required: true, unique: true, maxlength: 5 },
   MaTuyen: { type: mongoose.Schema.Types.ObjectId, ref: "Tuyen" },
   DiaChi: { type: String, required: true, maxlength: 100 },
-  ThoiGianDung: { type: String, required: true, maxlength: 100 },
+  SoKM: { type: Number, required: true },
   GiaTienVe: { type: Number, required: true, maxlength: 100 },
 });
 
@@ -66,33 +65,33 @@ const ChiTietXeOtoSchema = new mongoose.Schema({
   SDT_TaiXe: { type: String, required: true, maxlength: 10 },
   SoGheToiDa: { type: Number, required: true, maxlength: 100 },
   SoTien_1km: { type: Number, required: true, maxlength: 100 },
-  MaSB: { type: mongoose.Schema.Types.ObjectId, ref: "DanhSachSanBay" },
+  MaSB: { type: String, ref: "DanhSachSanBay" },
 });
 
 const DatXeOtoSchema = new mongoose.Schema({
   MaDX: { type: String, required: true, unique: true, maxlength: 5 },
-  MaDetailCar: { type: mongoose.Schema.Types.ObjectId, ref: "ChiTietXeOto" },
-  MaCus: { type: mongoose.Schema.Types.ObjectId, ref: "KhachHang" },
+  MaDetailCar: { type: String, ref: "ChiTietXeOto" },
+  MaCus: { type: String, ref: "KhachHang" },
+  MaTram: { type: String, ref: "TramDung" },
   DiemDon: { type: String, required: true, maxlength: 100 },
   DiemTra: { type: String, required: true, maxlength: 100 },
   SoLuongHanhKhach: { type: Number, required: true },
   NgayGioDat: { type: Date, required: true },
-  SoKm: { type: Number, required: true },
   ThanhTien: { type: Number, required: true },
   Trangthai: { type: Boolean, required: true },
 });
 
 const AppraiseCarSchema = new mongoose.Schema({
-  MaDX: { type: mongoose.Schema.Types.ObjectId, ref: "DatXeOto" },
-  MaCus: { type: mongoose.Schema.Types.ObjectId, ref: "KhachHang" },
+  MaDX: { type: String, ref: "DatXeOto" },
+  MaCus: { type: String, ref: "KhachHang" },
   SoSao: { type: Number, required: true },
   NoiDung: { type: String, required: true, maxlength: 500 },
 });
 
 const PhieuDatTauSchema = new mongoose.Schema({
   MaVeTau: { type: String, required: true, unique: true, maxlength: 5 },
-  MaCus: { type: mongoose.Schema.Types.ObjectId, ref: "KhachHang" },
-  MaPT: { type: mongoose.Schema.Types.ObjectId, ref: "PhuongTien" },
+  MaCus: { type: String, ref: "KhachHang" },
+  MaPT: { type: String, ref: "PhuongTien" },
   SLVeNguoiLon: { type: Number, required: true },
   SLVeTreEm: { type: Number, required: true },
   DiemDon: { type: String, required: true, maxlength: 100 },
@@ -103,16 +102,16 @@ const PhieuDatTauSchema = new mongoose.Schema({
 });
 
 const AppraiseTrainSchema = new mongoose.Schema({
-  MaTau: { type: mongoose.Schema.Types.ObjectId, ref: "PhieuDatTau" },
-  MaCus: { type: mongoose.Schema.Types.ObjectId, ref: "KhachHang" },
+  MaTau: { type: String, ref: "PhieuDatTau" },
+  MaCus: { type: String, ref: "KhachHang" },
   SoSao: { type: Number, required: true },
   NoiDung: { type: String, required: true, maxlength: 500 },
 });
 
 const PhieuDatXeBusSchema = new mongoose.Schema({
   MaVeBus: { type: String, required: true, unique: true, maxlength: 5 },
-  MaCus: { type: mongoose.Schema.Types.ObjectId, ref: "KhachHang" },
-  MaPT: { type: mongoose.Schema.Types.ObjectId, ref: "PhuongTien" },
+  MaCus: { type: String, ref: "KhachHang" },
+  MaPT: { type: String, ref: "PhuongTien" },
   SLVe: { type: Number, required: true },
   DiemDon: { type: String, required: true, maxlength: 100 },
   DiemTra: { type: String, required: true, maxlength: 100 },
@@ -122,19 +121,19 @@ const PhieuDatXeBusSchema = new mongoose.Schema({
 });
 
 const AppraiseBusSchema = new mongoose.Schema({
-  MaBus: { type: mongoose.Schema.Types.ObjectId, ref: "PhieuDatXeBus" },
-  MaCus: { type: mongoose.Schema.Types.ObjectId, ref: "KhachHang" },
+  MaBus: { type: String, ref: "PhieuDatXeBus" },
+  MaCus: { type: String, ref: "KhachHang" },
   SoSao: { type: Number, require: true },
   NoiDung: { type: String, require: true, maxlength: 500 },
 });
 
 const LichSuDatXeOtoSchema = new mongoose.Schema({
-  MaDX: { type: mongoose.Schema.Types.ObjectId, ref: "DatXeOto", maxlength: 5 },
+  MaDX: { type: String, ref: "DatXeOto", maxlength: 5 },
 });
 
 const LichSuDatTauSchema = new mongoose.Schema({
   MaVeTau: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,
     ref: "PhieuDatTau",
     maxlength: 5,
   },
@@ -142,53 +141,28 @@ const LichSuDatTauSchema = new mongoose.Schema({
 
 const LichSuDatXeBusSchema = new mongoose.Schema({
   MaVeBus: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,
     ref: "PhieuDatXeBus",
     maxlength: 5,
   },
 });
 
-let new_value = 1;
-DatXeOtoSchema.pre("save", async function (next) {
-  try {
-    let { SoTien_1km } = await ChiTietXeOto.findOne({
-      MaDetailCar: this.MaDetailCar,
-    });
-    let SoKm = this.SoKm;
+// trigger
 
-    this.MaDX = `DXCar${new_value}`;
-    this.ThanhTien = SoTien_1km * SoKm;
-    this.NgayGioDat = new Date();
-    new_value += 1;
-
-    next();
-  } catch (err) {
-    next(err);
-  }
-});
-
-PhieuDatXeBusSchema.pre("save", async function (next) {
-  try {
-    let { GiaTienVe, SLVe } = this;
-    let ThanhTien = GiaTienVe * SLVe;
-    this.MaVeBus = `PTBus${new_value}`;
-    this.ThanhTien = ThanhTien;
-    new_value += 1;
-
-    next();
-  } catch (err) {
-    next(err);
-  }
-});
-
+let new_value_train = 1;
 PhieuDatTauSchema.pre("save", async function (next) {
+  this.MaVeTau = `PTTau${new_value}`;
+  this.ThanhTien = ThanhTien;
+  new_value_train += 1;
+
+  next();
+});
+
+let new_value_phuongTien = 1;
+PhuongTienSchema.pre("save", async function (next) {
   try {
-    let { SLVeNguoiLon, SLVeTreEm } = this;
-    let { GiaTienVe } = await PhuongTien.findOne({ MaPT: this.MaPT });
-    let ThanhTien = GiaTienVe * SLVeNguoiLon + GiaTienVe * 0.5 * SLVeTreEm;
-    this.MaVeTau = `PTTau${new_value}`;
-    this.ThanhTien = ThanhTien;
-    new_value += 1;
+    this.MaPT = `PT${new_value}`;
+    new_value_phuongTien += 1;
 
     next();
   } catch (err) {
@@ -196,19 +170,87 @@ PhieuDatTauSchema.pre("save", async function (next) {
   }
 });
 
-TuyenSchema.pre("save", async function (next) {
+let new_value_detailCar = 1;
+ChiTietXeOtoSchema.pre("save", async function (next) {
   try {
-    let { MaSB: diemKhoiHanhSanBay, diemKetThucSanBay } = this;
-    this.MaTuyen = `Tuyen${new_value}`;
-    new_value += 1;
+    this.MaDetailCar = `DetailCar${new_value}`;
+    new_value_detailCar += 1;
 
     next();
   } catch (err) {
     next(err);
+  }
+});
+
+DatXeOtoSchema.post("save", async function (doc) {
+  try {
+    if (doc.TrangThai === 1) {
+      const lichSuDatXeOto = new LichSuDatXeOto({
+        MaDX: doc.MaDX,
+      });
+      await lichSuDatXeOto.save();
+    }
+  } catch (err) {
+    console.error("Error adding to LichSuDatXeOto:", err);
+  }
+});
+
+PhieuDatXeBusSchema.post("save", async function (doc) {
+  try {
+    if (doc.TrangThai === 1) {
+      const lichSuDatXeBus = new LichSuDatXeBus({
+        MaVeBus: doc.MaVeBus,
+      });
+      await lichSuDatXeBus.save();
+    }
+  } catch (err) {
+    console.error("Error adding to LichSuDatXeBus:", err);
+  }
+});
+
+PhieuDatTauSchema.post("save", async function (doc) {
+  try {
+    if (doc.TrangThai === 1) {
+      const lichSuDatTau = new LichSuDatTau({
+        MaVeTau: doc.MaVeTau,
+      });
+      await lichSuDatTau.save();
+    }
+  } catch (err) {
+    console.error("Error adding to LichSuDatTau:", err);
   }
 });
 
 const KhachHang = mongoose.model("KhachHang", KhachHangSchema);
 const DanhSachSanBay = mongoose.model("DanhSachSanBay", DanhSachSanBaySchema);
 const Tuyen = mongoose.model("Tuyen", TuyenSchema);
-module.exports = { KhachHang, DanhSachSanBay, Tuyen };
+const PhuongTien = mongoose.model("PhuongTien", PhuongTienSchema);
+const TramDung = mongoose.model("TramDung", TramDungSchema);
+const ChiTietXeOto = mongoose.model("ChiTietXeOto", ChiTietXeOtoSchema);
+const DatXeOto = mongoose.model("DatXeOto", DatXeOtoSchema);
+const AppraiseCar = mongoose.model("AppraiseCar", AppraiseCarSchema);
+const PhieuDatTau = mongoose.model("PhieuDatTau", PhieuDatTauSchema);
+const AppraiseTrain = mongoose.model("AppraiseTrain", AppraiseTrainSchema);
+const PhieuDatXeBus = mongoose.model("PhieuDatXeBus", PhieuDatXeBusSchema);
+const AppraiseBus = mongoose.model("AppraiseBus", AppraiseBusSchema);
+const LichSuDatXeOto = mongoose.model("LichSuDatXeOto", LichSuDatXeOtoSchema);
+const LichSuDatTau = mongoose.model("LichSuDatTau", LichSuDatTauSchema);
+const LichSuDatXeBus = mongoose.model("LichSuDatXeBus", LichSuDatXeBusSchema);
+
+module.exports = {
+  KhachHang,
+  DanhSachSanBay,
+  Tuyen,
+  PhuongTien,
+  TramDung,
+  ChiTietXeOto,
+  DatXeOto,
+  AppraiseCar,
+  PhieuDatTau,
+  AppraiseTrain,
+  PhieuDatXeBus,
+  AppraiseBus,
+  LichSuDatXeOto,
+  LichSuDatTau,
+  LichSuDatXeBus,
+};
