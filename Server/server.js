@@ -23,6 +23,11 @@ app.use("/api", require("./Route/HistoryCar.js"));
 app.use("/api", require("./Route/HistoryBusRoute.js"));
 app.use("/api", require("./Route/HistoryTrainRoute.js"));
 
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send("Something broke!");
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
