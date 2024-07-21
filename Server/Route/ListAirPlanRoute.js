@@ -6,7 +6,7 @@ const {
   CreateDanhSachSanBay,
 } = require("../Controller/ListAirplanController.js");
 
-route.post("/GetDanhSachSanBay", GetDanhSachSanBay);
+route.get("/GetDanhSachSanBay", GetDanhSachSanBay);
 route.post("/CreateDanhSachSanBay", CreateDanhSachSanBay);
 route.delete("/DeleteDanhSachSanBay/:id", DeleteDanhSachSanBay);
 module.exports = route;

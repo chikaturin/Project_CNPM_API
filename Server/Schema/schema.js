@@ -18,7 +18,7 @@ const KhachHangSchema = new mongoose.Schema({
 });
 
 const DanhSachSanBaySchema = new mongoose.Schema({
-  MaSB: { type: String, required: true, unique: true }, // Chỉnh sửa lỗi chính tả "uinque" thành "unique"
+  MaSB: { type: String, required: true }, // Chỉnh sửa lỗi chính tả "uinque" thành "unique"
   TenSanBay: { type: String, required: true, maxlength: 100 },
   ThanhPho: { type: String, required: true, maxlength: 100 },
 });
