@@ -4,9 +4,11 @@ const route = express.Router();
 const {
   GetLichSuDatTau,
   DeleteLichSuDatTau,
+  CreateHistoryTrain,
 } = require("../Controller/HistoryTrainController.js");
 
-route.post("/GetLichSuDatTau", GetLichSuDatTau);
+route.get("/GetLichSuDatTau", GetLichSuDatTau);
+route.post("/CreateHistoryTrain", CreateHistoryTrain);
 route.delete("/DeleteLichSuDatTau", DeleteLichSuDatTau);
 
 module.exports = route;

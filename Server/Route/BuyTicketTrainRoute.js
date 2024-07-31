@@ -6,11 +6,13 @@ const {
   BuyTicketTrain,
   SchedularChange,
   CancelTicketTrain,
+  FindBuyTicketTrainMaDX,
 } = require("../Controller/BuyTicketTrainController.js");
 
 route.post("/GetPhieusdattau", GetPhieusdattau);
 route.post("/BuyTicketTrain", BuyTicketTrain);
-route.put("/SchedularChange/:id", SchedularChange);
-route.delete("/CancelTicketTrain/:id", CancelTicketTrain);
+route.get("/FindBuyTicketTrainMaDX/:MaVeTau", FindBuyTicketTrainMaDX);
+route.put("BuyTicketTrain/SchedularChange/:id", SchedularChange);
+route.delete("/CancelTicketTrain/:MaDX", CancelTicketTrain);
 
 module.exports = route;

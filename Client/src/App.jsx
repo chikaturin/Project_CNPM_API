@@ -1,20 +1,33 @@
 import React from "react";
-import { Outlet } from "react-router-dom";
-import Header from "./Nav-Head/Header";
-import Nav from "./Nav-Head/Nav";
-
+import { Outlet, useLocation } from "react-router-dom";
+import Header from "./Customer/header/Header";
+import Footer from "./Customer/footer/Footer";
 const App = () => {
-  const [showNav, setShowNav] = React.useState(true);
+  const location = useLocation();
+  const isBookingCar = location.pathname === "/BookingCar";
+  const isBookingBus = location.pathname === "/BookingBus";
+  const isBookingTrain = location.pathname === "/BookingTrain";
+  const isBookingPage = isBookingCar || isBookingBus || isBookingTrain;
 
   return (
-    <div className="h-full w-full">
-      <Header setShowNav={setShowNav} />
-      <div className="flex">
-        {showNav && <Nav />}
-        <div className="flex-1">
-          <Outlet /> {/* Đây là nơi các route con sẽ được hiển thị */}
+    <div className="bg-[#F2F3F3]">
+      {isBookingPage ? (
+        <div className="w-full">
+          <Header />
+          <div className="w-full h-screen bg-opacity-20 flex justify-center bg-slate-400">
+            <div className="w-3/4 h-[65%]  min-h-fit  translate-y-1/4 bg-white rounded-md">
+              <Outlet />
+            </div>
+          </div>
+          <Footer />
         </div>
-      </div>
+      ) : (
+        <>
+          <Header />
+          <Outlet />
+          <Footer />
+        </>
+      )}
     </div>
   );
 };

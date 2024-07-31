@@ -1,4 +1,7 @@
 const PhieuDatTau = require("../Schema/schema.js").PhieuDatTau;
+const CounterDatTau = require("../Schema/schema.js").CounterDatTau;
+const PhuongTien = require("../Schema/schema.js").PhuongTien;
+const LichSuDatTau = require("../Schema/schema.js").LichSuDatTau;
 
 const GetPhieusdattau = async (req, res) => {
   try {
@@ -12,8 +15,8 @@ const GetPhieusdattau = async (req, res) => {
 const BuyTicketTrain = async (req, res) => {
   try {
     const {
-      MaCus,
       MaPT,
+      MaTram,
       SLVeNguoiLon,
       SLVeTreEm,
       DiemDon,
@@ -22,42 +25,70 @@ const BuyTicketTrain = async (req, res) => {
       ThanhTien,
       TrangThai,
     } = req.body;
+
     if (
-      !MaVeTau ||
-      !MaCus ||
       !MaPT ||
+      !MaTram ||
       !SLVeNguoiLon ||
-      !SLVeTreEm ||
       !DiemDon ||
       !DiemTra ||
       !NgayGioKhoiHanh ||
       !ThanhTien
     ) {
-      return res.status(400).json("Thiếu thông tin");
+      return res.status(400).json({ error: "Thiếu thông tin" });
     }
-    MaCus = await KhachHang.findbyId({ MaCus: MaCus });
-    MaPT = await PhuongTien.findbyId({ MaPT: MaPT });
+
+    const phuongTien = await PhuongTien.findById(MaPT);
+    if (!phuongTien) {
+      return res.status(400).json({ message: "Không tìm thấy phương tiện" });
+    }
+
     if (SLVeNguoiLon <= 0) {
       return res
         .status(400)
         .json({ message: "Số lượng vé người lớn phải lớn hơn 0." });
     }
-    const phieudattau = new PhieuDatTau({
-      MaCus,
+
+    const countterdattau = await CounterDatTau.findOneAndUpdate(
+      { _id: "datbuytCounter" },
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true }
+    );
+    const MaVeTau = `DX${countterdattau.seq}`;
+
+    const phieuDatTau = new PhieuDatTau({
+      MaVeTau,
       MaPT,
+      MaTram,
       SLVeNguoiLon,
       SLVeTreEm,
       DiemDon,
       DiemTra,
       NgayGioKhoiHanh,
-      ThanhTien:
-        MaPT.GiaTienVe * SLVeNguoiLon + MaPT.GiaTienVe * 0.5 * SLVeTreEm,
+      ThanhTien,
       TrangThai,
     });
-    await phieudattau.save();
-    res.status(200).json({ phieudattau });
+
+    await phieuDatTau.save();
+    res.status(200).json({ phieuDatTau });
   } catch (e) {
-    res.status(500).json("not create phieu dat tau");
+    res.status(500).json("Không tạo được phiếu đặt tàu");
+  }
+};
+
+const FindBuyTicketTrainMaDX = async (req, res) => {
+  try {
+    const { MaVeTau } = req.params;
+    const buyTicketTrain = await PhieuDatTau.findOne({ MaVeTau });
+
+    if (!buyTicketTrain) {
+      return res.status(404).json({ message: "Train ticket not found" });
+    }
+
+    res.status(200).json({ buyTicketTrain });
+  } catch (e) {
+    console.error("Error fetching train ticket by MaVeTau:", e);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -89,8 +120,9 @@ const CancelTicketTrain = async (req, res) => {
     if (!MaVeTau) {
       return res.status(400).json("Thiếu thông tin");
     }
-    await PhieuDatTau.deleteOne({ MaVeTau });
-    res.status(200).json("delete phieu dat tau success");
+    await PhieuDatTau.findByIdAndDelete({ MaVeTau });
+    await LichSuDatTau.findByIdAndDelete({ MaVeTau });
+    await res.status(200).json("delete phieu dat tau success");
   } catch (e) {
     res.status(500).json("not delete phieu dat tau");
   }
@@ -101,4 +133,5 @@ module.exports = {
   BuyTicketTrain,
   SchedularChange,
   CancelTicketTrain,
+  FindBuyTicketTrainMaDX,
 };

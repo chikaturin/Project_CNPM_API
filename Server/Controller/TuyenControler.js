@@ -1,5 +1,6 @@
 const Tuyen = require("../Schema/schema.js").Tuyen;
 const DanhSachSanBay = require("../Schema/schema.js").DanhSachSanBay;
+const CounterTuyen = require("../Schema/schema").CounterTuyen;
 
 const GetTuyen = async (req, res) => {
   try {
@@ -10,33 +11,27 @@ const GetTuyen = async (req, res) => {
   }
 };
 
-let new_value_tuyen = 1;
 const CreateTuyen = async (req, res) => {
   try {
-    const { DiemKhoiHanh, DiemKetThuc, ThoiGianKhoiHanh, ThoiGianKetThuc } =
+    const { DiemSanBay, DiemKetThuc, ThoiGianKhoiHanh, ThoiGianKetThuc } =
       req.body;
 
-    if (
-      !DiemKhoiHanh ||
-      !DiemKetThuc ||
-      !ThoiGianKhoiHanh ||
-      !ThoiGianKetThuc
-    ) {
+    if (!DiemSanBay || !DiemKetThuc || !ThoiGianKhoiHanh || !ThoiGianKetThuc) {
       return res.status(400).json({ message: "Thiếu thông tin bắt buộc." });
     }
 
     const diemKhoiHanhIsAirport = await DanhSachSanBay.exists({
-      MaSB: DiemKhoiHanh,
+      MaSB: DiemSanBay,
     });
     const diemKetThucIsAirport = await DanhSachSanBay.exists({
       MaSB: DiemKetThuc,
     });
-    const checkKH = await Tuyen.exists({ DiemKhoiHanh });
+    const checkKH = await Tuyen.exists({ DiemSanBay });
     const checkKT = await Tuyen.exists({ DiemKetThuc });
     if (
       diemKhoiHanhIsAirport &&
       diemKetThucIsAirport &&
-      DiemKhoiHanh === DiemKetThuc
+      DiemSanBay === DiemKetThuc
     ) {
       return res.status(400).json({
         message: "Điểm khởi hành và điểm kết thúc không thể đều là sân bay.",
@@ -52,11 +47,21 @@ const CreateTuyen = async (req, res) => {
         message: "Điểm khởi hành đã tồn tại.",
       });
     }
-    const MaTuyen = `T${new_value_tuyen}`;
-    new_value_tuyen += 1;
+
+    const counterTuyen = await CounterTuyen.findOneAndUpdate(
+      { _id: "tuyenCounter" },
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true }
+    );
+
+    if (!counterTuyen) {
+      return res.status(500).json({ message: "Lỗi khi lấy bộ đếm." });
+    }
+
+    const MaTuyen = `T${counterTuyen.seq}`;
     const newTuyen = new Tuyen({
       MaTuyen,
-      DiemKhoiHanh,
+      DiemSanBay,
       DiemKetThuc,
       ThoiGianKhoiHanh,
       ThoiGianKetThuc,
@@ -79,9 +84,45 @@ const DeleteTuyen = async (req, res) => {
     res.status(500).json("not delete tuyen");
   }
 };
+const TuyenIDTuyen = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await Tuyen.findById(id);
+    res.status(200).json({ message: "Tuyen  successfully" });
+  } catch (e) {
+    res.status(500).json("not  tuyen");
+  }
+};
+
+//DiemSanBay == MaSB
+const TuyenDiemSanBay = async (req, res) => {
+  const { diemSanBay } = req.query;
+
+  if (!diemSanBay) {
+    return res.status(400).json({ message: "diemSanBay is required" });
+  }
+
+  try {
+    const tuyens = await Tuyen.find({
+      DiemSanBay: { $regex: diemSanBay, $options: "i" },
+    });
+
+    if (!tuyens.length) {
+      return res
+        .status(404)
+        .json({ message: "No tuyens found with the given DiemSanBay" });
+    }
+
+    res.status(200).json({ tuyens });
+  } catch (error) {
+    res.status(500).json({ message: "Error finding DiemSanBay", error });
+  }
+};
 
 module.exports = {
   GetTuyen,
+  TuyenIDTuyen,
   CreateTuyen,
   DeleteTuyen,
+  TuyenDiemSanBay,
 };

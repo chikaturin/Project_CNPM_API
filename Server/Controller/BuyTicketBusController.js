@@ -1,4 +1,6 @@
 const PhieuDatXeBus = require("../Schema/schema.js").PhieuDatXeBus;
+const CounterDatBuyt = require("../Schema/schema.js").CounterDatBuyt;
+const lichSuDatXeBus = require("../Schema/schema.js").LichSuDatXeBus;
 
 const GetBuyTicketBus = async (req, res) => {
   try {
@@ -9,23 +11,14 @@ const GetBuyTicketBus = async (req, res) => {
   }
 };
 
-let new_value_bus = 1;
-
 const BuyTicketBus = async (req, res) => {
   try {
-    const {
-      MaCus,
-      MaPT,
-      SLVe,
-      DiemDon,
-      DiemTra,
-      NgayGioKhoiHanh,
-      ThanhTien,
-      TrangThai,
-    } = req.body;
+    const { MaPT, MaTram, SLVe, DiemDon, DiemTra, NgayGioKhoiHanh, ThanhTien } =
+      req.body;
+
     if (
-      !MaCus ||
       !MaPT ||
+      !MaTram ||
       !SLVe ||
       !DiemDon ||
       !DiemTra ||
@@ -39,24 +32,47 @@ const BuyTicketBus = async (req, res) => {
       return res.status(400).json({ message: "Số lượng vé phải lớn hơn 0." });
     }
 
-    const MaDX = `DX${new_value_bus}`;
-    new_value_bus += 1;
-    const MaKH = await KhachHang.findbyId({ MaCus: MaCus });
-    const MaXeBus = await PhuongTien.findbyId({ MaPT: MaPT });
+    const CounterdatBuyt = await CounterDatBuyt.findOneAndUpdate(
+      { _id: "datbuytCounter" },
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true }
+    );
+
+    const MaDX = `DB${CounterdatBuyt.seq}`;
+
     const buyTicketBus = new PhieuDatXeBus({
       MaVeBus: MaDX,
-      MaCus: MaKH._id,
-      MaPT: MaXeBus.GiaTienVe,
+      MaPT,
+      MaTram,
       SLVe,
       DiemDon,
       DiemTra,
-      NgayGioKhoiHanh,
-      ThanhTien: MaXeBus.GiaTienVe * SLVe,
+      NgayGioKhoiHanh: new Date(NgayGioKhoiHanh),
+      ThanhTien,
+      TrangThai: false,
     });
+
     await buyTicketBus.save();
     res.status(200).json({ buyTicketBus });
   } catch (e) {
+    console.error(e);
     res.status(500).json("not create buy ticket bus");
+  }
+};
+
+const FindBuyTicketBusMaDX = async (req, res) => {
+  try {
+    const { MaVeBus } = req.params;
+    const buyTicketBus = await PhieuDatXeBus.findOne({ MaVeBus });
+
+    if (!buyTicketBus) {
+      return res.status(404).json({ message: "Bus ticket not found" });
+    }
+
+    res.status(200).json({ buyTicketBus });
+  } catch (e) {
+    console.error("Error fetching bus ticket by MaVeBus:", e);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -81,10 +97,15 @@ const SchedularChange = async (req, res) => {
     res.status(500).json({ error: "Không thể cập nhật Ngày giờ đặt." });
   }
 };
+
 const CancelBooking = async (req, res) => {
   try {
-    const { id } = req.params;
-    await PhieuDatXeBus.findByIdAndDelete(id);
+    const { MaVeBus } = req.params;
+    if (!MaVeBus) {
+      return res.status(400).json("Thiếu thông tin");
+    }
+    await PhieuDatXeBus.findByIdAndDelete({ MaVeBus });
+    await lichSuDatXeBus.deleteOne({ MaVeBus });
     res.status(200).json({ message: "PhieuDatXeBus deleted successfully" });
   } catch (e) {
     res.status(500).json("not delete dat xe o to");
@@ -96,4 +117,5 @@ module.exports = {
   BuyTicketBus,
   SchedularChange,
   CancelBooking,
+  FindBuyTicketBusMaDX,
 };

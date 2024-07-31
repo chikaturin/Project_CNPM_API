@@ -3,10 +3,12 @@ const route = express.Router();
 
 const {
   GetLichSuDatXeOto,
+  createHistory,
   DeleteLichSuDatXeOto,
 } = require("../Controller/HistoryCarController.js");
 
-route.post("/GetLichSuDatXeOto", GetLichSuDatXeOto);
+route.get("/GetLichSuDatXeOto", GetLichSuDatXeOto);
+route.post("/createHistory", createHistory);
 route.delete("/DeleteLichSuDatXeOto", DeleteLichSuDatXeOto);
 
 module.exports = route;

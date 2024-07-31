@@ -5,7 +5,7 @@ const data = require("./Data/DB.js");
 
 app.use(cors());
 app.use(express.json());
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use("/api", require("./Route/KhachHangRoute.js"));
 app.use("/api", require("./Route/ListAirPlanRoute.js"));
@@ -22,6 +22,7 @@ app.use("/api", require("./Route/BookingCarRoute.js"));
 app.use("/api", require("./Route/HistoryCar.js"));
 app.use("/api", require("./Route/HistoryBusRoute.js"));
 app.use("/api", require("./Route/HistoryTrainRoute.js"));
+app.use("/api", require("./Route/UpdateStateRouter.js"));
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
